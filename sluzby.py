@@ -1,0 +1,407 @@
+import numpy as np
+import pandas as pd
+import random
+import calendar
+import datetime
+
+#TODO:
+
+# {"name""user_name, "vals" :[D1,D2,D3,Z,N1 - Bol_val, odd_num]]}
+legenda = {"jméno": ["D1", "D2", "D3", "Z", "N1", "oddělení"]}
+users = [{"name": "MUDr. Mašlej", "vals": [True, True, True, True, True, 1], "id": 0, "neg_poz":[0,1,2]},
+         {"name": "MUDr. Žilinská", "vals": [False, False, False, False, False, 1], "id": 1, "neg_poz":[]},
+         {"name": "MUDr. Polláková", "vals": [False, True, False, True, False, 2], "id": 2, "neg_poz":[]},
+         {"name": "MUDr. Burgetová", "vals": [False, False, False, False, False, 2], "id": 24, "neg_poz":[]},
+         {"name": "MUDr. Studénková", "vals": [True, False, False, False, True, 3], "id": 3, "neg_poz":[]},
+         {"name": "MUDr. Bortel", "vals": [True, True, False, True, True, 3], "id": 4, "neg_poz":[]},
+         {"name": "MUDr. Lendlová", "vals": [False, False, True, False, False, 3], "id": 5, "neg_poz":[]},
+         {"name": "MUDr. Rohanová", "vals": [False, False, False, False, False, 3], "id": 6, "neg_poz":[]},
+         {"name": "MUDr. Truhlářová", "vals": [True, True, False, True, True, 3], "id": 7, "neg_poz":[]},
+         {"name": "MUDr. Sedláková", "vals": [True, False, False, False, True, 4], "id": 8, "neg_poz":[]},
+         {"name": "MUDr. Kulhánek", "vals": [True, True, True, True, True, 4], "id": 9, "neg_poz":[]},
+         {"name": "MUDr. Grossmanová", "vals": [False, False, False, False, False, 4], "id": 10, "neg_poz":[]},
+         {"name": "MUDr. Liščáková", "vals": [False, False, False, True, False, 5], "id": 11, "neg_poz":[]},
+         {"name": "MUDr. Parihuzič", "vals": [False, True, False, True, False, 5], "id": 12, "neg_poz":[]},
+         {"name": "MUDr. Mazuchová", "vals": [False, True, True, False, False, 6], "id": 13, "neg_poz":[]},
+         {"name": "MUDr. Hořicová", "vals": [False, True, False, False, False, 6], "id": 14, "neg_poz":[]},
+         {"name": "MUDr. Štefáková", "vals": [True, True, True, True, False, 7], "id": 15, "neg_poz":[4,5,6]},
+         {"name": "MUDr. Suchomelová", "vals": [True, True, False, False, False, 7], "id": 16, "neg_poz":[]},
+         {"name": "MUDr. Tuček", "vals": [False, False, True, False, False, 8], "id": 17, "neg_poz":[]},
+         {"name": "MUDr. Tesař", "vals": [True, False, False, False, True, 9], "id": 18, "neg_poz":[]},
+         {"name": "MUDr. Péťová", "vals": [True, False, False, False, True, 10], "id": 19, "neg_poz":[]},
+         {"name": "MUDr. Vozáriková", "vals": [False, True, False, True, False, 10], "id": 20, "neg_poz":[]},
+         {"name": "MUDr. Rešová", "vals": [True, False, False, False, True, 11], "id": 21, "neg_poz":[]},
+         {"name": "MUDr. Studená", "vals": [False, False, True, True, False, 11], "id": 22, "neg_poz":[]},
+         {"name": "MUDr. Čistoňová", "vals": [True, False, False, False, True, 11], "id": 23, "neg_poz":[]},
+
+         ]
+
+# dny v listu
+days = ["po", "út", "st", "čt", "pá", "so", "ne"]
+
+
+class User:
+
+    def __init__(self, input_dict):
+        # dict: {"name""user_name, "vals" :[D1,D2,D3,Z,N1 - Bol_val, odd_num]]}
+        self.input_dict = input_dict
+        self.name = self.input_dict["name"]
+        self.id = self.input_dict["id"]
+
+        self.d1 = self.input_dict["vals"][0]
+        self.d2 = self.input_dict["vals"][1]
+        self.d3 = self.input_dict["vals"][2]
+        self.z = self.input_dict["vals"][3]
+        self.n1 = self.input_dict["vals"][4]
+        self.dk = False
+        self.nk = False
+        self.odd = self.input_dict["vals"][5]
+        self.weights = {"d1": 0, "d2": 0, "d3": 0, "z": 0, "n1": 0}
+
+        self.neg_pozadavky = self.input_dict["neg_poz"]  # list of Day() -ToDO
+        self.sluzby = []
+        self.dovolena = []
+
+    def set_variables(self):
+        # to delete
+        self.list_var = [self.d1, self.d2, self.d3, self.z, self.n1, self.odd]
+        # list length == 6
+        for x in range(0, 6):
+            self.list_var[x] = self.input_dict["vals"][x]
+
+    def __str__(self):
+        return str(self.name)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def set_nez_pozadavky(self, to_append):
+        #OBSOLETE -to delte
+        # nastavení self.neg_pozadavky
+        # dny jsou zadávány číselně, tj. "0" = 1.den, "1" = 2. den, etc.
+        self.neg_pozadavky = []
+        for day_number in to_append:
+            # převedení na indexové hodnoty v Month_sluzby.sluzby
+            self.neg_pozadavky.append(day_number-1)
+
+
+
+class Month_sluzby:
+
+    def __init__(self, month, year, users):
+        self.month = month
+        self.year = year
+        self.current_month = datetime.date(self.year, self.month,1)
+        #self.days = calendar.monthrange(self.year, self.month)[1]  # test
+        self.days = 14  # test
+        self.shifts_num = {"d1": 14, "d2": 14, "d3": 4, "z": 14, "n1": 14}  # test - fullversion auto count
+        self.shifts_max = 6  # test - fullversion autogenerated num_all_shifts/numusers
+
+        # users, chybi KL
+        self.users = users
+        self.users_list = [User(user) for user in self.users]
+        self.users_d1 = [user for user in self.users_list if user.d1]
+        self.users_d2 = [user for user in self.users_list if user.d2]
+        self.users_d3 = [user for user in self.users_list if user.d3]
+        self.users_z = [user for user in self.users_list if user.z]
+        self.users_n1 = [user for user in self.users_list if user.n1]
+        self.users_all_lists = [self.users_d1, self.users_d2, self.users_d3, self.users_z, self.users_n1]
+
+        # create Day() objs [0, max_day-1]
+        self.sluzby = list(Day(x, self.users_all_lists) for x in range(1, self.days + 1))
+
+        # set weights for every user in every type of shift
+        for user in self.users_list:
+            user.weights = {"d1": 1 / len(self.users_d1), "d2": 1 / len(self.users_d2),
+                            "d3": 1 / len(self.users_d3), "z": 1 / len(self.users_z), "n1": 1 / len(self.users_n1)}
+
+        # create Oddeleni() objs
+        self.oddeleni_dict = {}
+        for user in self.users_list:
+            if user.odd in self.oddeleni_dict.keys():
+                self.oddeleni_dict[user.odd].add_user(user)
+            else:
+                new_key_odd = Oddeleni(user.odd, self.sluzby)
+                new_key_odd.add_user(user)
+                self.oddeleni_dict[user.odd] = new_key_odd
+
+        # update_neg_pozadavky - convert content of user.neg_pozadavky from nums to respective Day() objs.
+        for user in self.users_list:
+            if len(user.neg_pozadavky) > 0:
+                temp_list = []
+                for pozadavek in user.neg_pozadavky:
+                    temp_list.append(self.sluzby[pozadavek])
+                user.neg_pozadavky = temp_list
+
+    def remove_user_from_station(self, user, day):
+        # odstraní uživatele z odd. na den noční a následující den, kdy má volno.
+        sel_odd_by_user = self.oddeleni_dict[user.odd]
+        sel_day_in_odd = sel_odd_by_user.days_odd_present[day.num_day]  # list of users in Odd for given day
+        user_index = sel_odd_by_user.days_odd_present[day.num_day].index(user)
+
+        # remove user from current day (user leaves at 11:00, counts as absence)
+        del sel_day_in_odd[user_index]
+        print("removing %s from %s" %(user,day))
+
+        # if not last day of month, remove user from next day
+        if day.num_day < self.days:
+            sel_next_day_in_odd = sel_odd_by_user.days_odd_present[day.num_day + 1]
+            del sel_next_day_in_odd[user_index]
+
+    def pd_rep_sluzby(self):
+        # basic_table = [[""for y in range(0,self.days)] for x in range(0,len(self.users_list))]
+        basic_table = []
+        for user in self.users_list:
+            list_to_app = []
+            for day in self.sluzby:
+                if day in user.sluzby:
+                    list_to_app.append(day.return_shift_by_user(user))
+                elif day in user.neg_pozadavky:
+                    list_to_app.append("-")
+                else:
+                    list_to_app.append("*")
+            basic_table.append(list_to_app)
+        df = pd.DataFrame(basic_table, columns=list(range(1, self.days + 1)),
+                          index=[(str(x.name) + "-" + str(x.odd)) for x in self.users_list])
+        return df
+
+    def assign_shift(self, type_shift, day_obj, user_obj):
+        #pripise danou sluzbu k userovym sluzbam
+        day_obj.sluzby_day[type_shift] = user_obj
+        user_obj.sluzby.append(day_obj)
+        if len(user_obj.sluzby) < self.shifts_max - 1:
+            # user_obj.weights[type_shift] = user_obj.weights[type_shift]/5
+            for shift in ["d1", "d2", "d3", "z", "n1"]:
+                user_obj.weights[shift] = user_obj.weights[shift] / 5
+        elif len(user_obj.sluzby) == self.shifts_max:
+            # user_obj.weights[type_shift] = 0
+            user_obj.weights = {"d1": 0, "d2": 0, "d3": 0, "z": 0, "n1": 0}
+
+
+    def assign_d1(self):
+        # user_posluzbe_temp = []
+        # print("sluzby D1")
+        for day in self.sluzby:
+            while True:
+                random_user = random.choices(day.users_d1, weights=[user.weights["d1"] for user in day.users_d1])[0]
+                if day not in random_user.neg_pozadavky:
+                    break
+            self.assign_shift("d1", day, random_user)
+            # print("for day %s: from %s selected %s with weight: %s" %(day, day.users_d1, random_user,random_user.weights))
+
+            # vyřadí User()a z množiny useru k volbě jiného typu služby na daný den
+            # day.users_d1 = day.exclude_user(random_user, day.users_d1)
+            day.users_d2 = day.exclude_user(random_user, day.users_d2)
+            day.users_d3 = day.exclude_user(random_user, day.users_d3)
+            day.users_z = day.exclude_user(random_user, day.users_z)
+            day.users_n1 = day.exclude_user(random_user, day.users_n1)
+
+    def assign_d2(self):
+        # print("sluzby D2")
+        for day in self.sluzby:
+            while True:
+                random_user = random.choices(day.users_d2, weights=[user.weights["d2"] for user in day.users_d2])[0]
+                if day not in random_user.neg_pozadavky:
+                    break
+            self.assign_shift("d2", day, random_user)
+            # print("for day %s: from %s selected %s with weight: %s" %(day, day.users_d2, random_user,random_user.weights))
+
+            # vyřadí User()a z množiny useru k volbě jiného typu služby na daný den
+            # day.users_d1 = day.exclude_user(random_user, day.users_d1)
+            # day.users_d2 = day.exclude_user(random_user, day.users_d2)
+            day.users_d3 = day.exclude_user(random_user, day.users_d3)
+            day.users_z = day.exclude_user(random_user, day.users_z)
+            day.users_n1 = day.exclude_user(random_user, day.users_n1)
+
+    def assign_d3(self):
+        # print("sluzby D3")
+        for day in self.sluzby:
+            # if 6 <= day.num_day <= 7:
+            if day.num_day in [6, 7, 13, 14]:
+                while True:
+                    random_user = random.choices(day.users_d3, weights=[user.weights["d3"] for user in day.users_d3])[0]
+                    if day not in random_user.neg_pozadavky:
+                        break
+                self.assign_shift("d3", day, random_user)
+                # print("for day %s: from %s selected %s with weight: %s" %(day, day.users_d3, random_user,random_user.weights))
+
+                # vyřadí User()a z množiny useru k volbě jiného typu služby na daný den
+                # day.users_d1 = day.exclude_user(random_user, day.users_d1)
+                # day.users_d2 = day.exclude_user(random_user, day.users_d2)
+                # day.users_d3 = day.exclude_user(random_user, day.users_d3)
+                day.users_z = day.exclude_user(random_user, day.users_z)
+                day.users_n1 = day.exclude_user(random_user, day.users_n1)
+
+    def assign_z(self):
+        # print("sluzby Z")
+        for day in self.sluzby:
+            #self.check_workstation_occ(day, "z")
+            while True:
+                random_user = random.choices(day.users_z, weights=[user.weights["z"] for user in day.users_z])[0]
+                if day not in random_user.neg_pozadavky and self.not_alone_in_odd(random_user):
+                    break
+            self.assign_shift("z", day, random_user)
+            # print("for day %s: from %s selected %s with weight: %s" %(day, day.users_z, random_user,random_user.weights))
+
+            # vyřadí User()a z množiny useru k volbě jiného typu služby na daný den
+            day.users_d1 = day.exclude_user(random_user, day.users_d1)
+            day.users_d2 = day.exclude_user(random_user, day.users_d2)
+            day.users_d3 = day.exclude_user(random_user, day.users_d3)
+            # day.users_z = day.exclude_user(random_user, day.users_z)
+            day.users_n1 = day.exclude_user(random_user, day.users_n1)
+
+            # vyřazeni User()a z služeb na následující den
+            if day.num_day < self.days:
+                next_day = self.sluzby[day.num_day]  # days are numbered from 1, list indexed from 0
+                next_day.users_d1 = next_day.exclude_user(random_user, next_day.users_d1)
+                next_day.users_d2 = next_day.exclude_user(random_user, next_day.users_d2)
+                next_day.users_d3 = next_day.exclude_user(random_user, next_day.users_d3)
+                next_day.users_z = next_day.exclude_user(random_user, next_day.users_z)
+                next_day.users_n1 = next_day.exclude_user(random_user, next_day.users_n1)
+
+            # potřeba zkontrolovat jestli v daný den celou pracovní dobu alespoň 1 člověk - tzn. nemaji všichni noční,
+            # anebo nejsou po noční
+            self.remove_user_from_station(random_user, day)
+
+    def assign_n1(self):
+        # print("sluzby N1")
+        for day in self.sluzby:
+            #self.check_workstation_occ(day, "n1")
+
+            while True:
+                random_user = random.choices(day.users_n1, weights=[user.weights["n1"] for user in day.users_n1])[0]
+                if day not in random_user.neg_pozadavky and self.not_alone_in_odd(random_user):
+                    break
+            self.assign_shift("n1", day, random_user)
+            # print("for day %s: from %s selected %s with weight: %s" %(day, day.users_n1, random_user,random_user.weights))
+
+            # vyřadí User()a z množiny useru k volbě jiného typu služby na daný den
+            day.users_d1 = day.exclude_user(random_user, day.users_d1)
+            day.users_d2 = day.exclude_user(random_user, day.users_d2)
+            day.users_d3 = day.exclude_user(random_user, day.users_d3)
+            day.users_z = day.exclude_user(random_user, day.users_z)
+            # day.users_n1 = day.exclude_user(random_user, day.users_n1)
+
+            # vyřazeni User()a z služeb na následující den
+            if day.num_day < self.days:
+                next_day = self.sluzby[day.num_day]  # days are numbered from 1, list indexed from 0
+                next_day.users_d1 = next_day.exclude_user(random_user, next_day.users_d1)
+                next_day.users_d2 = next_day.exclude_user(random_user, next_day.users_d2)
+                next_day.users_d3 = next_day.exclude_user(random_user, next_day.users_d3)
+                next_day.users_z = next_day.exclude_user(random_user, next_day.users_z)
+                next_day.users_n1 = next_day.exclude_user(random_user, next_day.users_n1)
+
+            # vyřadí User()a z "Z" služby předchozí den
+            if day.num_day != 1:
+                prev_day = self.sluzby[day.num_day - 2]  # days are numbered from 1, list indexed from 0
+                prev_day.users_z = prev_day.exclude_user(random_user, prev_day.users_z)
+
+            # v rámci Oddeleni() odstraní User()-a pro daný a následující den
+            self.remove_user_from_station(random_user, day)
+
+    def not_alone_in_odd(self, user):
+        return self.oddeleni_dict[user.odd].test_presence()
+
+
+    def check_workstation_occ(self, day, type_shift):
+        """check whether every workstation is occupied during working days"""
+        # correct day.users_n1 for users who are alone in the station
+        # iteruje všema odd -> vybira usery, kteří jsou sami na odd. v daný  a následující den.
+        if type_shift == "n1":
+            list_to_modify = day.users_n1
+        else:
+            list_to_modify = day.users_z
+
+        for odd_num in self.oddeleni_dict:
+            odd = self.oddeleni_dict[odd_num]
+            if len(odd.days_odd_present[day.num_day]) == 1:
+                user_to_excl = odd.days_odd_present[day.num_day][0]
+                list_to_modify = day.exclude_user(user_to_excl, list_to_modify)
+
+                # odstraní uživatele z poolu služeb na další den
+                #if day.num_day < self.days and len(odd.days_odd_present[day.num_day + 1]) == 1:
+                #    next_day = self.sluzby[self.sluzby.index(day) + 1]
+                #    next_day.users_n1 = next_day.exclude_user(user_to_excl, next_day.users_n1)
+
+
+class Day:
+
+    def __init__(self, num_day, lists):
+        self.num_day = num_day
+        self.sluzby_day = {"d1": None, "d2": None, "d3": None, "z": None, "n1": None}
+        self.n_pozadavky = []  # list of User()s
+
+        # all lists of User()s grouped by their ability to be assigned to certain shift (d1,d2,d3,z,n1)
+        # to be dynamically changed acording context (-surrounding days)
+        self.lists = lists
+        self.users_d1 = self.lists[0]
+        self.users_d2 = self.lists[1]
+        self.users_d3 = self.lists[2]
+        self.users_z = self.lists[3]
+        self.users_n1 = self.lists[4]
+
+    def exclude_user(self, user_to_exclude, list_to_change):
+        return list(set(list_to_change).difference(set([user_to_exclude])))
+
+    def return_shift_by_user(self, user):
+        temp_list_sluzby = ["d1", "d2", "d3", "z", "n1"]
+        for sluzba_type in temp_list_sluzby:
+            if self.sluzby_day[sluzba_type] == user:
+                return sluzba_type
+
+    def __str__(self):
+        return "day_" + str(self.num_day)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Oddeleni:
+    """objekt zastřešující všechny uživatele daného oddělení, existuje pro kontrolu personálního obsazení v průběhu měsíce"""
+
+    def __init__(self, odd_num, list_days):
+        self.odd_num = odd_num
+        self.odd_users_all = []
+        self.list_days = list_days
+        # {"Day(): list of users present at given day"}
+
+    def add_user(self, user):
+        self.odd_users_all.append(user)
+        self.days_odd_present = {key.num_day: self.odd_users_all.copy() for key in self.list_days}
+
+    def test_presence(self):
+        return len(self.odd_users_all) > 1
+
+    def __str__(self):
+        return "oddělení_" + str(self.odd_num)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+
+rijen = Month_sluzby(10,2000, users)
+rijen.assign_n1()
+rijen.assign_z()
+rijen.assign_d1()
+rijen.assign_d2()
+rijen.assign_d3()
+
+#print(rijen.oddeleni_dict)
+#print(rijen.oddeleni_dict[1].days_odd_present)
+
+viz = rijen.pd_rep_sluzby()
+print(viz)
+print("all right")
+
+class Hello:
+    def __init__(self):
+        self.motor = [1]
+
+x = Hello()
+
+print(x.motor)
+text = "motor"
+#VYHLEDÁ METODU PODLE STRING-U
+method_to_call = getattr(x, text)
+print(method_to_call)
