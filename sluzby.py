@@ -133,6 +133,15 @@ class Month_sluzby:
                     temp_list.append(self.sluzby[pozadavek])
                 user.neg_pozadavky = temp_list
 
+    def add_sluzba(self, user_id, day_num, type_shift):
+        #fce k neautomatickému přiřazení služby Userovi
+        user = self.users_list[user_id]
+        day = self.sluzby[day_num+1]
+        day.sluzby_day[type_shift] = user
+        user.sluzby.append(day)
+
+
+
     def remove_user_from_station(self, user, day):
         # odstraní uživatele z odd. na den noční a následující den, kdy má volno.
         sel_odd_by_user = self.oddeleni_dict[user.odd]
@@ -167,8 +176,9 @@ class Month_sluzby:
 
     def assign_shift(self, type_shift, day_obj, user_obj):
         #pripise danou sluzbu k userovym sluzbam
-        day_obj.sluzby_day[type_shift] = user_obj
-        user_obj.sluzby.append(day_obj)
+        if day_obj.sluzby_day[type_shift] == None:
+            day_obj.sluzby_day[type_shift] = user_obj
+            user_obj.sluzby.append(day_obj)
         if len(user_obj.sluzby) < self.shifts_max - 1:
             # user_obj.weights[type_shift] = user_obj.weights[type_shift]/5
             for shift in ["d1", "d2", "d3", "z", "n1"]:
@@ -381,6 +391,7 @@ class Oddeleni:
 
 
 rijen = Month_sluzby(10,2000, users)
+#rijen.add_sluzba(0,4,"d1")
 rijen.assign_n1()
 rijen.assign_z()
 rijen.assign_d1()
